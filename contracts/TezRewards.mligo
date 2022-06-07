@@ -7,21 +7,19 @@
 type user = {
     gameContractAddress : address;
     userWalletAddress : address;
-    userBet : nat;
     userLevel : nat;
-    userWon : bool;
     userWinningCount : nat;
 }
 
-let set (u : user) : user = 
-    user.gameContractAddress = Tezos.sender()
+let setUser (u : user) : user = 
+    {u with gameContractAddress = ("ADDRESS" : address)}
 
 //this function must 
 // (1) update the storage
 // (2) send transaction to the game user 
 
 let reward (u: user) : user =
-    if u.userWinningCount = 5 then Tezos.transaction ("TezRewardsAddress", ("userWalletAddress", 5))
-    if u.userWinningCount = 10 then Tezos.transaction ("TezRewardsAddress", ("userWalletAddress", 10))
-
+    if u.userWinningCount = 5n then Tezos.transaction ("TezRewardsAddress", ("userWalletAddress", 5))
+    else if u.userWinningCount = 10n then Tezos.transaction ("TezRewardsAddress", ("userWalletAddress", 10))
+    
 
