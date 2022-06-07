@@ -15,6 +15,7 @@ type storage = {
 
 [@inline] let error_BET_MUST_BE_GREATER_THAN_ZERO = 1n
 [@inline] let error_BET_TOO_LARGE = 2n
+[@inline] let error_GUESS_TOO_LARGE = 4n
 
 type userStats = (address, nat) map
 
@@ -24,17 +25,17 @@ let play (user : game) : game =
 
     if Tezos.amount() = 0tz then failwith (error_BET_MUST_BE_GREATER_THAN_ZERO)
 
-    if (user.level = 1) =
-        if user.guess > 10 then failwith ("Guess cannot be greater than 10")
-        if Tezos.amount() * 2 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
+    else if (user.level = 1) then
+        if (user.guess > 10n) then failwith (error_GUESS_TOO_LARGE)
+        else if Tezos.amount() * 2 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
 
-    if(user.level = 2) = 
-        if user.guess > 100 then failwith ("Guess cannot be greater than 100")
-        if Tezos.amount() * 4 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
+    else if(user.level = 2) then
+        if user.guess > 100n then failwith (error_GUESS_TOO_LARGE)
+        else if Tezos.amount() * 3 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
     
-    if(user.level = 3) =
-        if user.guess > 1000 then failwith ("Guess cannot be greater than 1000")
-        if Tezos.amount() * 8 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
+    else if(user.level = 3) then
+        if user.guess > 1000n then failwith (error_GUESS_TOO_LARGE)
+        else if Tezos.amount() * 4 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
     
     let userBetUpdate (u : game) : game = 
         u.bet = Tezos.amount()
@@ -55,22 +56,12 @@ let play (user : game) : game =
     
 [@inline] let error_ORACLE_COULD_NOT_BE_REACHED = 3n
 
-let finish (user, randomNumber : game * nat) : storage = 
+let finish (user, randomNumber : game * nat) = 
     if Tezos.sender () <> storage.oracle_id then failwith (error_ORACLE_COULD_NOT_BE_REACHED)
     
-    let operation =
-        if (randomNumber = user.guess) then 
-            let finalAmount : nat = user.bet
+    else if (randomNumber = user.guess) then 
 
-            if(user.level = 1) then let finalAmount = 2 * user.bet
-            if(user.level = 2) then let finalAmount = 4 * user.bet 
-            if(user.level = 3) then let finalAmount = 8 * user.bet
+        let finalAmount : nat = user.level * user.bet + user.bet in 
 
-            [Tezos.transfer user.playerId finalAmount] 
+        Tezos.transfer (user.playerId finalAmount)
 
-    let storage = storage.game <- (None : game option) in
-    (ops, storage)
-
-
-let entry fund _ storage =
-  ([] : operation list), storage
