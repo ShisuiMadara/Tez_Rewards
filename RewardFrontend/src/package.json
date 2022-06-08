@@ -1,0 +1,14 @@
+{
+  "name": "reward_app",
+  "version": "1.0.0",
+  "description": "A reward system for dapps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ManchurianHotdog",
+  "license": "ISC",
+  "dependencies": {
+    "react": "^18.1.0"
+  }
+}
