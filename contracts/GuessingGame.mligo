@@ -6,7 +6,7 @@ type game = {
 }
 
 type storage = {
-  game : game option;
+  game : game option; //None ,  value hold -> None --> No instance of game present
   oracle_id : address;
 }
 
