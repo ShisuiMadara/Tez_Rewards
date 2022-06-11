@@ -9,6 +9,7 @@
   "author": "ManchurianHotdog",
   "license": "ISC",
   "dependencies": {
+    "qrcode-generator": "^1.4.4",
     "react": "^18.1.0"
   }
 }

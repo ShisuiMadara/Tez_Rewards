@@ -4,22 +4,29 @@
 
 // => Tezos.sender() is the game conract address
 //user
-type user = {
-    gameContractAddress : address;
-    userWalletAddress : address;
-    userLevel : nat;
-    userWinningCount : nat;
+
+type game = {
+  guess : nat;
+  bet : tez;
+  level: nat;
+  playerId : address;
 }
+type userWins = (address, nat) map
+type win = nat 
+//tz1MVXCWHbHpCJhxnktHGwuwFcDYMeAai6iM -> address of tez rewards wallet
 
-let setUser (u : user) : user = 
-    {u with gameContractAddress = ("ADDRESS" : address)}
+//what do we need ?
+//the game id (for there will be many other games)
+//the user stats for that particular game
+//what is the user stats that's needed ? in this case its the number of wins
+//but it may differ for other games 
+//hence a general thing must be imported 
+//let say the general user stats which is a general key
 
-//this function must 
-// (1) update the storage
-// (2) send transaction to the game user 
+let reward (g, wins : game * userWins)  : game =
+    if (g.level = 1) then 
+        let win = Map.find_opt 1 wins in 
+        if(win = 5) then Tezos.transaction ()
 
-let reward (u: user) : user =
-    if u.userWinningCount = 5n then Tezos.transaction ("TezRewardsAddress", ("userWalletAddress", 5))
-    else if u.userWinningCount = 10n then Tezos.transaction ("TezRewardsAddress", ("userWalletAddress", 10))
-    
+
 

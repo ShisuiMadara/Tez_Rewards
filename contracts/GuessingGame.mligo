@@ -1,3 +1,9 @@
+//this contracts plays the game 
+//this also call our reward contract if some achievement has been unlocked ?
+//the above cna be replaced with the reward contract is called evertime. And it decides 
+//if accourding to the given stats, the user is eligible for reward or not 
+//the reward contract is called everytime one game turn finishes
+
 type game = {
   guess : nat;
   bet : tez;
@@ -10,6 +16,8 @@ type storage = {
   oracle_id : address;
 }
 
+type return = operation list * (address, nat) map
+
 //the user id and the bet amount for each user PER LEVEL
 //for each level, we will maintain a map
 
@@ -17,9 +25,15 @@ type storage = {
 [@inline] let error_BET_TOO_LARGE = 2n
 [@inline] let error_GUESS_TOO_LARGE = 4n
 
-type userStats = (address, nat) map
-
+type userStats = (address, nat) map //contains user and the bet
+type userWins = (address, nat) map  //contains user and the wins
 //need to store information in map
+let my_users : userWins =
+  Map.literal [
+    (1, 0);
+    (2, 0);
+    (3, 0)
+  ]
 
 let play (user : game) : game =
 
@@ -56,12 +70,21 @@ let play (user : game) : game =
     
 [@inline] let error_ORACLE_COULD_NOT_BE_REACHED = 3n
 
-let finish (user, randomNumber : game * nat) = 
+let finish (user, randomNumber, userWin : game * nat * userWins) = 
     if Tezos.sender () <> storage.oracle_id then failwith (error_ORACLE_COULD_NOT_BE_REACHED)
     
     else if (randomNumber = user.guess) then 
 
-        let finalAmount : nat = user.level * user.bet + user.bet in 
+        if(user.level = 1) then 
+            Map.update(user.level, Some(Map.find_opt 1 userWin + 1)) userWin
+        else if (user.level = 2) then 
+            Map.update(user.level, Some(Map.find_opt 2 userWin + 1)) userWin
+        else if (user.level = 3) then
+            Map.update(user.level, Some(Map.find_opt 3 userWin + 1)) userWin
 
+        let finalAmount : nat = user.level * user.bet + user.bet in 
+        
         Tezos.transfer (user.playerId finalAmount)
 
+let main (action, stor: game * storage) : return =
+  (([] : operation list), userStats)
