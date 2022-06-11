@@ -13,6 +13,7 @@ type game = {
 }
 type userWins = (address, nat) map
 type win = nat 
+
 //tz1MVXCWHbHpCJhxnktHGwuwFcDYMeAai6iM -> address of tez rewards wallet
 
 //what do we need ?
