@@ -12,11 +12,11 @@ type game = {
 }
 
 type storage = {
-  game : game option; //None ,  value hold -> None --> No instance of game present
+  game : game ; //None ,  value hold -> None --> No instance of game present
   oracle_id : address;
 }
 
-type return = operation list * (address, nat) map
+type return = operation list * storage
 
 //the user id and the bet amount for each user PER LEVEL
 //for each level, we will maintain a map
@@ -25,37 +25,38 @@ type return = operation list * (address, nat) map
 [@inline] let error_BET_TOO_LARGE = 2n
 [@inline] let error_GUESS_TOO_LARGE = 4n
 
-type userStats = (address, nat) map //contains user and the bet
-type userWins = (address, nat) map  //contains user and the wins
+type userStats = (address, tez) map //contains user and the bet
+type userWins = (nat, int) map  //contains level and the wins
 //need to store information in map
 let my_users : userWins =
   Map.literal [
-    (1, 0);
-    (2, 0);
-    (3, 0)
+    (1n, 0);
+    (2n, 0);
+    (3n, 0)
   ]
 
-let play (user : game) : game =
+let play (user : game) : unit =
 
-    if Tezos.amount() = 0tz then failwith (error_BET_MUST_BE_GREATER_THAN_ZERO)
+    if Tezos.amount = 0tz then failwith (error_BET_MUST_BE_GREATER_THAN_ZERO)
 
-    else if (user.level = 1) then
+    else if (user.level = 1n) then
         if (user.guess > 10n) then failwith (error_GUESS_TOO_LARGE)
-        else if Tezos.amount() * 2 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
+        else if Tezos.amount * 2n > Tezos.balance then failwith (error_BET_TOO_LARGE)
 
-    else if(user.level = 2) then
+    else if(user.level = 2n) then
         if user.guess > 100n then failwith (error_GUESS_TOO_LARGE)
-        else if Tezos.amount() * 3 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
+        else if Tezos.amount * 3n > Tezos.balance then failwith (error_BET_TOO_LARGE)
     
-    else if(user.level = 3) then
+    else if(user.level = 3n) then
         if user.guess > 1000n then failwith (error_GUESS_TOO_LARGE)
-        else if Tezos.amount() * 4 > Tezos.balance() then failwith (error_BET_TOO_LARGE)
+        else if Tezos.amount * 4n > Tezos.balance then failwith (error_BET_TOO_LARGE)
     
-    let userBetUpdate (u : game) : game = 
-        u.bet = Tezos.amount()
+    let userBetUpdate (u : game) : game =
+        {u with bet = Tezos.amount}
+         
 
-    let findUser (query, u : userStats * game) : bool = //bool or unit ?
-        let predicate = fun (i,j : address * nat) -> assert (i <> u.playerId)
+    let findUser (query, u : userStats * game) : unit = //bool or unit ?
+        let predicate = fun (i,j : address * tez) -> assert (i <> u.playerId)
         in Map.iter predicate query
 
     let addUser (query, u : userStats * game) : userStats =
@@ -64,27 +65,36 @@ let play (user : game) : game =
     let updateUser (query, u : userStats * game) : userStats = 
         Map.update (u.playerId) (Some(u.bet)) query 
 
-    let action (query, u : userStats * game) : userStats =
-        if(findUser) then updateUser(query, u) else addUser(query, u)
+    // let action (query, u : userStats * game) : userStats =
+    //     if(findUser = unit) then updateUser(query, u) else addUser(query, u)
 
     
 [@inline] let error_ORACLE_COULD_NOT_BE_REACHED = 3n
 
-let finish (user, randomNumber, userWin : game * nat * userWins) = 
-    if Tezos.sender () <> storage.oracle_id then failwith (error_ORACLE_COULD_NOT_BE_REACHED)
+let finish (user, randomNumber, userWin, stor: game * nat * userWins * storage) : userWins = 
+    if Tezos.sender <> stor.oracle_id then failwith (error_ORACLE_COULD_NOT_BE_REACHED)
     
     else if (randomNumber = user.guess) then 
 
-        if(user.level = 1) then 
-            Map.update(user.level, Some(Map.find_opt 1 userWin + 1)) userWin
-        else if (user.level = 2) then 
-            Map.update(user.level, Some(Map.find_opt 2 userWin + 1)) userWin
-        else if (user.level = 3) then
-            Map.update(user.level, Some(Map.find_opt 3 userWin + 1)) userWin
+        if(user.level = 1n) then 
+            let here : int = Map.find 1n userWin in
+            let here = here + 1 in
+            Map.update(user.level)  (Some(here)) userWin
+        else if (user.level = 2n) then
+            let here : int = Map.find 2n userWin in
+            let here = here + 1 in 
+            Map.update (user.level) (Some(here)) userWin
+        else 
+            let here : int = Map.find 3n userWin in
+            let here = here + 1 in
+            Map.update(user.level) (Some(here)) userWin
+    
+    else 
+        userWin
 
-        let finalAmount : nat = user.level * user.bet + user.bet in 
-        
-        Tezos.transfer (user.playerId finalAmount)
+// let make_transaction(usr : game) =
+//     let finalAmount : tez = usr.level * usr.bet + usr.bet in 
+//     Tezos.transaction unit finalAmount usr.playerId
 
 let main (action, stor: game * storage) : return =
-  (([] : operation list), userStats)
+  (([] : operation list), stor)
