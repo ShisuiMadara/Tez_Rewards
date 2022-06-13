@@ -24,6 +24,7 @@ type return = operation list * storage
 
 [@inline] let error_BET_MUST_BE_GREATER_THAN_ZERO = 1n
 [@inline] let error_BET_TOO_LARGE = 2n
+[@inline] let error_ORACLE_COULD_NOT_BE_REACHED = 3n
 [@inline] let error_GUESS_TOO_LARGE = 4n
 
 type userStats = (address, tez) map //contains user and the bet
@@ -75,30 +76,28 @@ let play (user: game ) : unit=
     // let action (query, u : userStats * game) : userStats =
     //     if(findUser = ()) then updateUser(query, u) else addUser(query, u)
 
-    
-[@inline] let error_ORACLE_COULD_NOT_BE_REACHED = 3n
+    let finish (user, randomNumber, userWin, stor, oracleID: game * nat * userWins * storage * oracle_id) : userWins = 
+        if Tezos.sender <> oracleID then failwith (error_ORACLE_COULD_NOT_BE_REACHED)
+        
+        else if (randomNumber = user.guess) then 
 
-let finish (user, randomNumber, userWin, stor, oracleID: game * nat * userWins * storage * oracle_id) : userWins = 
-    if Tezos.sender <> oracleID then failwith (error_ORACLE_COULD_NOT_BE_REACHED)
-    
-    else if (randomNumber = user.guess) then 
-
-        if(user.level = 1n) then 
-            let here : int = Map.find 1n userWin in
-            let here = here + 1 in
-            Map.update(user.level)  (Some(here)) userWin
-        else if (user.level = 2n) then
-            let here : int = Map.find 2n userWin in
-            let here = here + 1 in 
-            Map.update (user.level) (Some(here)) userWin
+            if(user.level = 1n) then 
+                let here : int = Map.find 1n userWin in
+                let here = here + 1 in
+                Map.update(user.level)  (Some(here)) userWin
+            else if (user.level = 2n) then
+                let here : int = Map.find 2n userWin in
+                let here = here + 1 in 
+                Map.update (user.level) (Some(here)) userWin
+            else 
+                let here : int = Map.find 3n userWin in
+                let here = here + 1 in
+                Map.update(user.level) (Some(here)) userWin
+        
         else 
-            let here : int = Map.find 3n userWin in
-            let here = here + 1 in
-            Map.update(user.level) (Some(here)) userWin
-    
-    else 
-        userWin
+            userWin
 
+    
 
 // let make_transaction(usr : game) =
 //     let finalAmount : tez = usr.level * usr.bet + usr.bet in 
