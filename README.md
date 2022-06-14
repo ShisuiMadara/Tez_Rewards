@@ -1,8 +1,9 @@
-# Tez_Rewards
+# Tez_Rewards and dApp
 
 A decentralised gambling app with bet placed on the random number genrated by the user for the selected level and under constraints.
-The application is based on a reward system which for a <b>certain type</b> of games can act as a system which provides rewards to the users for achieving certain levels of the game. This aims to distribute the user activity among all the decentralised apps deployed on tezos in the future. 
-<em>The reward contract is to be included as a third party application and thus its use is dependent on the third party application interaction of the hosting application.</em>
+The application is based on a <b>reward system (TezRewards)</b> which for a <b>certain type</b> of games can act as a system which provides rewards to the users for achieving certain levels of the game. This aims to distribute the user activity among all the decentralised apps deployed on tezos in the future. 
+<br>
+<em><b>The reward contract is to be included as a third party application and thus its use is dependent on the third party application interaction of the hosting application.</b></em>
 
 <br>
 
